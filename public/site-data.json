@@ -1,0 +1,76 @@
+{
+  "countdown": {
+    "targetDate": "2027-01-09T09:00",
+    "isLive": true,
+    "isRunning": false,
+    "hasStarted": false,
+    "staticDays": 41,
+    "staticHours": 16,
+    "staticMinutes": 35,
+    "staticSeconds": 46,
+    "headline": "COUNTDOWN",
+    "remainingSeconds": 3602027,
+    "targetEpoch": 0
+  },
+  "gallery": [
+    {
+      "title": "ff",
+      "url": "/images/gallery/custom-1795264056945-IMG_0920.JPG",
+      "id": "g-1795264056956"
+    },
+    {
+      "title": "dd",
+      "url": "/images/gallery/custom-1795264068414-IMG_1028_1_.JPG",
+      "id": "g-1795264068421"
+    },
+    {
+      "title": "bb",
+      "url": "/images/gallery/custom-1795264080561-IMG_1094_1_.JPG",
+      "id": "g-1795264080568"
+    },
+    {
+      "title": "ff",
+      "url": "/images/gallery/custom-1795273220618-WhatsApp_Image_2026-11-19_at_7.22.59_PM.jpeg",
+      "id": "g-1795273220624"
+    },
+    {
+      "title": "hh",
+      "url": "/images/gallery/custom-1795273232368-WhatsApp_Image_2026-11-20_at_1.16.45_AM.jpeg",
+      "id": "g-1795273232373"
+    },
+    {
+      "title": "yy",
+      "url": "/images/gallery/custom-1795273242084-WhatsApp_Image_2026-11-21_at_5.00.31_PM.jpeg",
+      "id": "g-1795273242090"
+    },
+    {
+      "title": "kk",
+      "url": "/images/gallery/custom-1795273251581-WhatsApp_Image_2026-11-21_at_5.32.00_PM.jpeg",
+      "id": "g-1795273251585"
+    },
+    {
+      "title": "rr",
+      "url": "/images/gallery/custom-1795273260424-WhatsApp_Image_2026-11-21_at_5.50.02_PM.jpeg",
+      "id": "g-1795273260429"
+    }
+  ],
+  "galleryIntervalSeconds": 2,
+  "aboutPhotos": [
+    "/images/about-team.jpg",
+    "/images/about/custom-1795262447987-IMG_0920.JPG",
+    "/images/about/custom-1795262457940-IMG_1028_1_.JPG",
+    "/images/about/custom-1795262466730-IMG_1094_1_.JPG",
+    "/images/about/custom-1795273003674-WhatsApp_Image_2026-11-21_at_5.00.31_PM.jpeg",
+    "/images/about/custom-1795273003718-WhatsApp_Image_2026-11-21_at_5.32.00_PM.jpeg",
+    "/images/about/custom-1795273003755-WhatsApp_Image_2026-11-21_at_5.50.02_PM.jpeg",
+    "/images/about/custom-1795273115946-gg.jpeg"
+  ],
+  "aboutIntervalSeconds": 1.5,
+  "sponsors": {
+    "hudSponsorPrefix": "",
+    "hudSponsorName": "",
+    "titleSponsorName": "",
+    "sponsorLogoUrl": "",
+    "sponsorTagline": ""
+  }
+}
