@@ -9,7 +9,7 @@ export const MobileRemote: React.FC = () => {
   const [authError, setAuthError] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
-  const REMOTE_PASSCODE = 'dataxscape2026';
+  const REMOTE_PASSCODE = 'admin123';
   const isRunning = siteData.countdown.isRunning;
   const hasStarted = Boolean(siteData.countdown.hasStarted || isRunning);
 
@@ -133,7 +133,7 @@ export const MobileRemote: React.FC = () => {
               setPasscode(e.target.value);
               setAuthError(false);
             }}
-            placeholder="Passcode (default: dataxscape2026)"
+            placeholder="Passcode (default: admin123)"
             className="w-full bg-black/80 border border-white/20 focus:border-cyan-400 rounded-xl px-4 py-3.5 text-center text-white font-mono text-sm focus:outline-none"
             autoFocus
           />

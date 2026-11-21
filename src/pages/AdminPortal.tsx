@@ -194,7 +194,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToSite }) => {
     showToast(`Reordered "${moved.title}"!`);
   };
 
-  const ADMIN_PASSKEY = 'dataxscape2026';
+  const ADMIN_PASSKEY = 'admin123';
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -323,7 +323,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToSite }) => {
                 setPasscode(e.target.value);
                 setAuthError(false);
               }}
-              placeholder="Enter passcode (default: dataxscape2026)"
+              placeholder="Enter passcode (default: admin123)"
               className="w-full bg-black/70 border border-white/20 focus:border-cyan-400 rounded-xl px-4 py-3.5 text-white placeholder-white/35 focus:outline-none transition-colors pr-12 text-sm font-mono"
               autoFocus
             />
@@ -607,7 +607,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToSite }) => {
                     </div>
 
                     <div className="text-[11px] font-mono text-white/50 pt-1">
-                      Phone Passcode: <span className="text-cyan-400 font-bold">dataxscape2026</span> • Phone & PC should be on the same Wi-Fi
+                      Phone Passcode: <span className="text-cyan-400 font-bold">admin123</span> • Phone & PC should be on the same Wi-Fi
                     </div>
                   </div>
 

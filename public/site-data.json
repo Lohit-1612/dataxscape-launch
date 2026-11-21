@@ -2,15 +2,15 @@
   "countdown": {
     "targetDate": "2027-01-09T09:00",
     "isLive": true,
-    "isRunning": false,
-    "hasStarted": false,
-    "remainingSeconds": 3602027,
+    "isRunning": true,
+    "hasStarted": true,
+    "remainingSeconds": 3602000,
     "staticDays": 41,
-    "staticHours": 17,
-    "staticMinutes": 12,
-    "staticSeconds": 58,
+    "staticHours": 16,
+    "staticMinutes": 33,
+    "staticSeconds": 20,
     "headline": "COUNTDOWN",
-    "targetEpoch": 0,
+    "targetEpoch": 1798899978980,
     "animateBirth": false
   },
   "gallery": [
