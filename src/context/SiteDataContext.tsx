@@ -52,12 +52,138 @@ export function getAuthoritativeRemainingSeconds(
   return 0;
 }
 
+export interface SponsorItem {
+  id: string;
+  title: string;
+  artist?: string;
+  year?: string;
+  image: string;
+  aspect?: number;
+  frame?: 'black' | 'oak' | 'white';
+  mat?: boolean;
+  drop?: number;
+  tag?: string;
+  details?: string[];
+}
+
+export const DEFAULT_SPONSORS: SponsorItem[] = [
+  {
+    id: 'sp-google-cloud',
+    title: 'Google Cloud',
+    artist: 'Global Cloud & AI Ecosystem',
+    year: 'Title Sponsor',
+    image: '/images/sponsors/sp-google-cloud.svg',
+    aspect: 0.8,
+    frame: 'black',
+    mat: true,
+    drop: 0,
+    tag: 'TITLE SPONSOR',
+    details: [
+      'Role: Title Sponsor & Cloud Infrastructure',
+      'Offering: $10,000+ Vertex AI Credits & Cloud Sandbox Access',
+      'Tracks: GenAI, Autonomous Agents & Big Data Systems',
+      'Status: Verified Strategic Partner',
+    ],
+  },
+  {
+    id: 'sp-github',
+    title: 'GitHub',
+    artist: 'Global Developer Platform',
+    year: 'Platform Partner',
+    image: '/images/sponsors/sp-github.svg',
+    aspect: 0.8,
+    frame: 'black',
+    mat: true,
+    drop: 0.05,
+    tag: 'DEV PLATFORM',
+    details: [
+      'Role: Official Developer Platform Partner',
+      'Offering: GitHub Copilot Subscriptions & Codespaces',
+      'Tracks: Open Source & Code Quality Excellence',
+      'Status: Verified Strategic Partner',
+    ],
+  },
+  {
+    id: 'sp-vercel',
+    title: 'Vercel',
+    artist: 'Frontend Cloud & AI Deployment',
+    year: 'Deployment Partner',
+    image: '/images/sponsors/sp-vercel.svg',
+    aspect: 0.8,
+    frame: 'black',
+    mat: true,
+    drop: -0.05,
+    tag: 'CLOUD DEPLOYMENT',
+    details: [
+      'Role: Official Cloud Deployment Partner',
+      'Offering: Instant Edge Deployment & AI SDK Support',
+      'Tracks: Modern Web Apps & Real-time Systems',
+      'Status: Verified Strategic Partner',
+    ],
+  },
+  {
+    id: 'sp-postman',
+    title: 'Postman',
+    artist: 'API Platform for Developers',
+    year: 'API Innovation Partner',
+    image: '/images/sponsors/sp-postman.svg',
+    aspect: 0.8,
+    frame: 'black',
+    mat: true,
+    drop: 0.08,
+    tag: 'API INNOVATION',
+    details: [
+      'Role: Official API Innovation Partner',
+      'Offering: Postman Enterprise Workspaces & Testing Suite',
+      'Tracks: Microservices & API Orchestration',
+      'Status: Verified Strategic Partner',
+    ],
+  },
+  {
+    id: 'sp-supabase',
+    title: 'Supabase',
+    artist: 'Open Source Firebase Alternative',
+    year: 'Database Partner',
+    image: '/images/sponsors/sp-supabase.svg',
+    aspect: 0.8,
+    frame: 'black',
+    mat: true,
+    drop: -0.03,
+    tag: 'DATA & STORAGE',
+    details: [
+      'Role: Official Data Infrastructure Partner',
+      'Offering: Dedicated Managed Postgres & Vector Storage',
+      'Tracks: High-Scale Databases & Realtime Sync',
+      'Status: Verified Strategic Partner',
+    ],
+  },
+  {
+    id: 'sp-ds-club',
+    title: 'Data Science Club',
+    artist: 'Dept. of AI & DS, Panimalar',
+    year: 'Organizing Host',
+    image: '/images/sponsors/sp-ds-club.svg',
+    aspect: 0.8,
+    frame: 'oak',
+    mat: true,
+    drop: 0.04,
+    tag: 'HOST & COMMUNITY',
+    details: [
+      'Role: Lead Organizing Community',
+      'Institution: Panimalar Engineering College',
+      'Mission: Advancing AI, Data Science & Student Innovation',
+      'Edition: DataXscape 2.0 National Level Hackathon',
+    ],
+  },
+];
+
 export interface SponsorSettings {
   hudSponsorPrefix: string;
   hudSponsorName: string;
   titleSponsorName: string;
   sponsorLogoUrl?: string;
   sponsorTagline: string;
+  items: SponsorItem[];
 }
 
 export interface SiteData {
@@ -98,6 +224,7 @@ export const INITIAL_SITE_DATA: SiteData = {
     titleSponsorName: '',
     sponsorLogoUrl: '',
     sponsorTagline: '',
+    items: DEFAULT_SPONSORS,
   },
 };
 
@@ -117,6 +244,12 @@ interface SiteContextType {
   removeAboutPhoto: (index: number) => void;
   updateAboutInterval: (seconds: number) => void;
   updateSponsors: (newSponsors: Partial<SponsorSettings>) => void;
+  addSponsorItem: (sponsor: Omit<SponsorItem, 'id'>) => Promise<void>;
+  updateSponsorItem: (id: string, updated: Partial<SponsorItem>) => void;
+  removeSponsorItem: (id: string) => void;
+  reorderSponsorItems: (newItems: SponsorItem[]) => void;
+  uploadSponsorLogoFile: (file: File) => Promise<string>;
+  resetSponsorsToDefault: () => void;
   restoreVideoDefaults: () => Promise<void>;
 }
 
@@ -140,9 +273,17 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           remSecs = Math.max(0, Math.ceil((cd.targetEpoch - Date.now()) / 1000));
         }
 
+        const sp = parsed.sponsors || {};
+        const sponsorItems = Array.isArray(sp.items) && sp.items.length > 0 ? sp.items : DEFAULT_SPONSORS;
+
         return {
           ...INITIAL_SITE_DATA,
           ...parsed,
+          sponsors: {
+            ...INITIAL_SITE_DATA.sponsors,
+            ...sp,
+            items: sponsorItems,
+          },
           countdown: {
             ...INITIAL_SITE_DATA.countdown,
             ...cd,
@@ -201,15 +342,28 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (res.ok) {
           const serverData = await res.json();
           if (serverData && !isCancelled) {
-            setSiteData((prev) => ({
-              ...prev,
-              ...serverData,
-              countdown: {
-                ...prev.countdown,
-                headline: serverData.countdown?.headline ?? prev.countdown.headline,
-                targetDate: serverData.countdown?.targetDate ?? prev.countdown.targetDate,
-              },
-            }));
+            setSiteData((prev) => {
+              const sp = serverData.sponsors || {};
+              const sponsorItems = Array.isArray(sp.items) && sp.items.length > 0
+                ? sp.items
+                : prev.sponsors.items?.length
+                ? prev.sponsors.items
+                : DEFAULT_SPONSORS;
+              return {
+                ...prev,
+                ...serverData,
+                sponsors: {
+                  ...prev.sponsors,
+                  ...sp,
+                  items: sponsorItems,
+                },
+                countdown: {
+                  ...prev.countdown,
+                  headline: serverData.countdown?.headline ?? prev.countdown.headline,
+                  targetDate: serverData.countdown?.targetDate ?? prev.countdown.targetDate,
+                },
+              };
+            });
             await setPersistentData('siteData', serverData);
             return;
           }
@@ -664,6 +818,134 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
   };
 
+  const addSponsorItem = async (sponsor: Omit<SponsorItem, 'id'>) => {
+    const newItem: SponsorItem = {
+      ...sponsor,
+      id: `sp-${Date.now()}`,
+      aspect: sponsor.aspect ?? 0.8,
+      frame: sponsor.frame ?? 'black',
+      mat: sponsor.mat ?? true,
+      drop: sponsor.drop ?? 0,
+    };
+    setSiteData((prev) => {
+      const currentItems = Array.isArray(prev.sponsors.items) && prev.sponsors.items.length > 0
+        ? prev.sponsors.items
+        : DEFAULT_SPONSORS;
+      const updated = {
+        ...prev,
+        sponsors: {
+          ...prev.sponsors,
+          items: [...currentItems, newItem],
+        },
+      };
+      persistToServer(updated);
+      return updated;
+    });
+  };
+
+  const updateSponsorItem = (id: string, updatedFields: Partial<SponsorItem>) => {
+    setSiteData((prev) => {
+      const currentItems = Array.isArray(prev.sponsors.items) && prev.sponsors.items.length > 0
+        ? prev.sponsors.items
+        : DEFAULT_SPONSORS;
+      const updatedItems = currentItems.map((item) =>
+        item.id === id ? { ...item, ...updatedFields } : item
+      );
+      const updated = {
+        ...prev,
+        sponsors: {
+          ...prev.sponsors,
+          items: updatedItems,
+        },
+      };
+      persistToServer(updated);
+      return updated;
+    });
+  };
+
+  const removeSponsorItem = (id: string) => {
+    setSiteData((prev) => {
+      const currentItems = Array.isArray(prev.sponsors.items) && prev.sponsors.items.length > 0
+        ? prev.sponsors.items
+        : DEFAULT_SPONSORS;
+      const updatedItems = currentItems.filter((item) => item.id !== id);
+      const updated = {
+        ...prev,
+        sponsors: {
+          ...prev.sponsors,
+          items: updatedItems,
+        },
+      };
+      persistToServer(updated);
+      return updated;
+    });
+  };
+
+  const reorderSponsorItems = (newItems: SponsorItem[]) => {
+    setSiteData((prev) => {
+      const updated = {
+        ...prev,
+        sponsors: {
+          ...prev.sponsors,
+          items: newItems,
+        },
+      };
+      persistToServer(updated);
+      return updated;
+    });
+  };
+
+  const uploadSponsorLogoFile = async (file: File): Promise<string> => {
+    try {
+      let dataUrl: string;
+      if (file.type === 'image/svg+xml') {
+        dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      } else {
+        dataUrl = await compressImage(file, 800, 800, 0.9);
+      }
+
+      const res = await fetch('/api/upload-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dataUrl,
+          filename: file.name,
+          folder: 'sponsors',
+        }),
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        if (result.url) {
+          return result.url;
+        }
+      }
+      return dataUrl;
+    } catch (err) {
+      console.warn('Error uploading sponsor logo:', err);
+      throw err;
+    }
+  };
+
+  const resetSponsorsToDefault = () => {
+    setSiteData((prev) => {
+      const updated = {
+        ...prev,
+        sponsors: {
+          ...prev.sponsors,
+          items: DEFAULT_SPONSORS,
+        },
+      };
+      persistToServer(updated);
+      return updated;
+    });
+  };
+
   const restoreVideoDefaults = async () => {
     setSiteData(INITIAL_SITE_DATA);
     try {
@@ -697,6 +979,12 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         removeAboutPhoto,
         updateAboutInterval,
         updateSponsors,
+        addSponsorItem,
+        updateSponsorItem,
+        removeSponsorItem,
+        reorderSponsorItems,
+        uploadSponsorLogoFile,
+        resetSponsorsToDefault,
         restoreVideoDefaults,
       }}
     >

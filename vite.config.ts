@@ -341,7 +341,7 @@ function backendApiPlugin(): Plugin {
               const buffer = Buffer.from(matches[2], 'base64');
               const sanitizedName = (filename || 'photo.jpg').replace(/[^a-zA-Z0-9.-]/g, '_');
               const uniqueFileName = `custom-${Date.now()}-${sanitizedName}`;
-              const targetFolder = folder === 'about' ? 'about' : 'gallery';
+              const targetFolder = folder === 'about' ? 'about' : folder === 'sponsors' ? 'sponsors' : 'gallery';
               const outDir = path.resolve(__dirname, 'public/images', targetFolder);
               if (!fs.existsSync(outDir)) {
                 fs.mkdirSync(outDir, { recursive: true });

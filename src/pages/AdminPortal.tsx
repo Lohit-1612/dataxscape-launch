@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useSiteData, GalleryPhoto } from '../context/SiteDataContext';
+import { useSiteData, GalleryPhoto, SponsorItem, DEFAULT_SPONSORS } from '../context/SiteDataContext';
 import {
   Lock,
   Clock,
@@ -12,6 +12,7 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowLeft,
+  ArrowRight,
   CheckCircle,
   AlertCircle,
   Eye,
@@ -24,7 +25,10 @@ import {
   Copy,
   Check,
   Radio,
-  RotateCcw
+  RotateCcw,
+  Pencil,
+  Layers,
+  Tag
 } from 'lucide-react';
 
 interface AdminPortalProps {
@@ -68,8 +72,127 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToSite }) => {
     removeAboutPhoto,
     updateAboutInterval,
     updateSponsors,
+    addSponsorItem,
+    updateSponsorItem,
+    removeSponsorItem,
+    reorderSponsorItems,
+    uploadSponsorLogoFile,
+    resetSponsorsToDefault,
     restoreVideoDefaults,
   } = useSiteData();
+
+  // Sponsor management form state
+  const [editingSponsorId, setEditingSponsorId] = useState<string | null>(null);
+  const [sponsorTitle, setSponsorTitle] = useState('');
+  const [sponsorArtist, setSponsorArtist] = useState('');
+  const [sponsorYear, setSponsorYear] = useState('');
+  const [sponsorTag, setSponsorTag] = useState('');
+  const [sponsorFrame, setSponsorFrame] = useState<'black' | 'oak' | 'white'>('black');
+  const [sponsorImage, setSponsorImage] = useState('');
+  const [sponsorDetailsText, setSponsorDetailsText] = useState('');
+  const [sponsorLogoFile, setSponsorLogoFile] = useState<File | null>(null);
+  const [isUploadingSponsor, setIsUploadingSponsor] = useState(false);
+  const sponsorFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const resetSponsorForm = () => {
+    setEditingSponsorId(null);
+    setSponsorTitle('');
+    setSponsorArtist('');
+    setSponsorYear('');
+    setSponsorTag('');
+    setSponsorFrame('black');
+    setSponsorImage('');
+    setSponsorDetailsText('');
+    setSponsorLogoFile(null);
+    if (sponsorFileInputRef.current) sponsorFileInputRef.current.value = '';
+  };
+
+  const startEditingSponsor = (sp: SponsorItem) => {
+    setEditingSponsorId(sp.id);
+    setSponsorTitle(sp.title);
+    setSponsorArtist(sp.artist || '');
+    setSponsorYear(sp.year || '');
+    setSponsorTag(sp.tag || '');
+    setSponsorFrame(sp.frame || 'black');
+    setSponsorImage(sp.image);
+    setSponsorDetailsText((sp.details || []).join('\n'));
+    setSponsorLogoFile(null);
+    if (sponsorFileInputRef.current) sponsorFileInputRef.current.value = '';
+    window.scrollTo({ top: 380, behavior: 'smooth' });
+  };
+
+  const handleSaveSponsor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sponsorTitle.trim()) {
+      alert('Please provide a Sponsor / Partner Name.');
+      return;
+    }
+
+    if (!sponsorLogoFile && !sponsorImage.trim()) {
+      alert('Please upload a logo file or provide an image URL.');
+      return;
+    }
+
+    setIsUploadingSponsor(true);
+    try {
+      let finalImageUrl = sponsorImage.trim();
+
+      if (sponsorLogoFile) {
+        finalImageUrl = await uploadSponsorLogoFile(sponsorLogoFile);
+      }
+
+      const details = sponsorDetailsText
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      if (editingSponsorId) {
+        updateSponsorItem(editingSponsorId, {
+          title: sponsorTitle.trim(),
+          artist: sponsorArtist.trim() || undefined,
+          year: sponsorYear.trim() || undefined,
+          tag: sponsorTag.trim() || undefined,
+          frame: sponsorFrame,
+          image: finalImageUrl,
+          details: details.length > 0 ? details : undefined,
+        });
+        showToast(`Updated "${sponsorTitle}" in 3D Picture Rail!`);
+      } else {
+        await addSponsorItem({
+          title: sponsorTitle.trim(),
+          artist: sponsorArtist.trim() || undefined,
+          year: sponsorYear.trim() || undefined,
+          tag: sponsorTag.trim() || undefined,
+          frame: sponsorFrame,
+          image: finalImageUrl,
+          details: details.length > 0 ? details : undefined,
+          aspect: 0.8,
+          mat: true,
+          drop: 0,
+        });
+        showToast(`Added "${sponsorTitle}" to 3D Picture Rail!`);
+      }
+
+      resetSponsorForm();
+    } catch (err) {
+      console.error('Failed to save sponsor:', err);
+      showToast('Error saving sponsor. Please check the file and try again.');
+    } finally {
+      setIsUploadingSponsor(false);
+    }
+  };
+
+  const moveSponsor = (index: number, direction: 'left' | 'right') => {
+    const list = Array.isArray(siteData.sponsors.items) && siteData.sponsors.items.length > 0
+      ? [...siteData.sponsors.items]
+      : [...DEFAULT_SPONSORS];
+    const target = direction === 'left' ? index - 1 : index + 1;
+    if (target < 0 || target >= list.length) return;
+    const [moved] = list.splice(index, 1);
+    list.splice(target, 0, moved);
+    reorderSponsorItems(list);
+    showToast(`Reordered "${moved.title}"!`);
+  };
 
   const ADMIN_PASSKEY = 'dataxscape2026';
 
@@ -318,7 +441,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToSite }) => {
                 : 'bg-white/5 hover:bg-white/10 text-white/70'
             }`}
           >
-            <Award className="w-4 h-4" /> Sponsors & HUD Reticle
+            <Award className="w-4 h-4" /> 3D Sponsors ({((siteData.sponsors.items && siteData.sponsors.items.length) || DEFAULT_SPONSORS.length)} Cards)
           </button>
         </nav>
 
@@ -1076,70 +1199,416 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToSite }) => {
           </div>
         )}
 
-        {/* TAB 3: SPONSORS & HUD MANAGER */}
-        {activeTab === 'sponsors' && (
-          <div className="bg-[#121212] border border-white/10 p-6 sm:p-8 rounded-2xl space-y-6">
-            <div>
-              <h3 className="text-xl font-bold text-cyan-400 mb-1">Sponsors & Partners Branding</h3>
-              <p className="text-xs sm:text-sm text-white/60">
-                Manage the title sponsor, HUD viewfinder overlay text, and promotional statements.
-              </p>
-            </div>
+        {/* TAB 4: 3D PICTURE RAIL SPONSORS MANAGER */}
+        {activeTab === 'sponsors' && (() => {
+          const currentSponsorList = Array.isArray(siteData.sponsors.items) && siteData.sponsors.items.length > 0
+            ? siteData.sponsors.items
+            : DEFAULT_SPONSORS;
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Primary 3D Sponsor Name */}
-              <div className="bg-black/50 p-5 rounded-xl border border-white/10">
-                <label className="block text-xs uppercase tracking-wider text-white/70 font-semibold mb-2">
-                  Title Sponsor Display Name
-                </label>
-                <input
-                  type="text"
-                  value={siteData.sponsors.titleSponsorName}
-                  onChange={(e) => {
-                    updateSponsors({ titleSponsorName: e.target.value });
-                    showToast('Title sponsor name updated!');
-                  }}
-                  className="w-full bg-black/80 border border-white/15 focus:border-cyan-400 rounded-lg px-4 py-2.5 text-white font-mono text-sm focus:outline-none"
-                />
-                <span className="text-[11px] text-white/40 mt-1 block">
-                  Displayed in the metallic golden centerpiece in Sponsors section.
-                </span>
+          return (
+            <div className="space-y-8">
+              {/* 1. SECTION BRANDING & OVERVIEW */}
+              <div className="bg-[#121212] border border-cyan-500/30 p-6 sm:p-8 rounded-2xl space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 text-cyan-400 text-xs font-mono font-bold tracking-widest uppercase mb-1">
+                      <Award className="w-4 h-4" />
+                      3D Picture Rail Sponsors & Partners
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-1">
+                      Sponsors Management & 3D Rail Display
+                    </h3>
+                    <p className="text-xs sm:text-sm text-white/60">
+                      Add, edit, reorder and customize sponsor cards, logo artworks, ribbon tier tags, and flip-card specifications.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm('Reset all sponsor cards to default 6 official partners?')) {
+                        resetSponsorsToDefault();
+                        resetSponsorForm();
+                        showToast('Reset sponsor cards to official partners!');
+                      }
+                    }}
+                    className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs font-mono font-bold rounded-xl flex items-center gap-2 transition"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" /> Reset to Defaults
+                  </button>
+                </div>
+
+                {/* Global Tagline & HUD settings */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-white/70 font-semibold mb-1.5">
+                      Section Tagline / Caption
+                    </label>
+                    <input
+                      type="text"
+                      value={siteData.sponsors.sponsorTagline}
+                      onChange={(e) => updateSponsors({ sponsorTagline: e.target.value })}
+                      placeholder="Empowering 24 hours of non-stop intelligence..."
+                      className="w-full bg-black/80 border border-white/15 focus:border-cyan-400 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-white/70 font-semibold mb-1.5">
+                      HUD Viewfinder Brand Text (Top-Right)
+                    </label>
+                    <input
+                      type="text"
+                      value={siteData.sponsors.hudSponsorName}
+                      onChange={(e) => updateSponsors({ hudSponsorName: e.target.value })}
+                      placeholder="e.g. DATAXSCAPE // 2026"
+                      className="w-full bg-black/80 border border-white/15 focus:border-cyan-400 rounded-lg px-4 py-2.5 text-white font-mono text-sm focus:outline-none"
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* HUD Reticle Sponsor Text */}
-              <div className="bg-black/50 p-5 rounded-xl border border-white/10">
-                <label className="block text-xs uppercase tracking-wider text-white/70 font-semibold mb-2">
-                  HUD Viewfinder Sponsor Brand
-                </label>
-                <input
-                  type="text"
-                  value={siteData.sponsors.hudSponsorName}
-                  onChange={(e) => {
-                    updateSponsors({ hudSponsorName: e.target.value });
-                    showToast('HUD brand updated!');
-                  }}
-                  className="w-full bg-black/80 border border-white/15 focus:border-cyan-400 rounded-lg px-4 py-2.5 text-white font-mono text-sm focus:outline-none"
-                />
-                <span className="text-[11px] text-white/40 mt-1 block">
-                  Appears inside the fixed cyberpunk reticle at top right.
-                </span>
+              {/* 2. ADD / EDIT SPONSOR CARD FORM */}
+              <div className="bg-[#121212] border border-white/10 p-6 sm:p-8 rounded-2xl relative">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-cyan-400 flex items-center gap-2">
+                      {editingSponsorId ? (
+                        <>
+                          <Pencil className="w-5 h-5 text-cyan-400" /> Edit Sponsor Card: {sponsorTitle || 'Unnamed'}
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-5 h-5 text-cyan-400" /> Add New Sponsor Card
+                        </>
+                      )}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-white/60">
+                      Configure sponsor title, custom logo image, ribbon badge, and back-of-card specifications.
+                    </p>
+                  </div>
+
+                  {editingSponsorId && (
+                    <button
+                      type="button"
+                      onClick={resetSponsorForm}
+                      className="px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-xs font-mono font-bold text-white rounded-lg transition"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                </div>
+
+                <form onSubmit={handleSaveSponsor} className="space-y-5">
+                  {/* Row 1: Name & Role/Subtitle */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-white/80 mb-1.5">
+                        Sponsor / Partner Name *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Google Cloud, GitHub, Supabase"
+                        value={sponsorTitle}
+                        onChange={(e) => setSponsorTitle(e.target.value)}
+                        className="w-full bg-black/60 border border-white/15 focus:border-cyan-400 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-white/80 mb-1.5">
+                        Subtitle / Role Track
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Global AI & Cloud Platform"
+                        value={sponsorArtist}
+                        onChange={(e) => setSponsorArtist(e.target.value)}
+                        className="w-full bg-black/60 border border-white/15 focus:border-cyan-400 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Row 2: Ribbon Badge Tag, Category, Frame Style */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-white/80 mb-1.5">
+                        Ribbon Badge (Tag)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. TITLE SPONSOR, DEV PLATFORM"
+                        value={sponsorTag}
+                        onChange={(e) => setSponsorTag(e.target.value.toUpperCase())}
+                        className="w-full bg-black/60 border border-white/15 focus:border-cyan-400 rounded-lg px-4 py-2.5 text-sm text-cyan-400 font-mono font-bold focus:outline-none"
+                      />
+                      <span className="text-[10px] text-white/40 mt-1 block">Displayed beneath the hanging frame.</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-white/80 mb-1.5">
+                        Tier / Category Label
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Title Sponsor, Platform Partner"
+                        value={sponsorYear}
+                        onChange={(e) => setSponsorYear(e.target.value)}
+                        className="w-full bg-black/60 border border-white/15 focus:border-cyan-400 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none"
+                      />
+                      <span className="text-[10px] text-white/40 mt-1 block">Printed on detail subtitle.</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-white/80 mb-1.5">
+                        Frame Moulding Style
+                      </label>
+                      <select
+                        value={sponsorFrame}
+                        onChange={(e) => setSponsorFrame(e.target.value as any)}
+                        className="w-full bg-black/60 border border-white/15 focus:border-cyan-400 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none cursor-pointer"
+                      >
+                        <option value="black">Cyber Obsidian Black (Recommended)</option>
+                        <option value="oak">Titanium Oak</option>
+                        <option value="white">Steel White</option>
+                      </select>
+                      <span className="text-[10px] text-white/40 mt-1 block">3D metallic bevel style.</span>
+                    </div>
+                  </div>
+
+                  {/* Row 3: Logo Upload & Logo URL */}
+                  <div className="bg-black/40 border border-white/10 rounded-xl p-4 space-y-3">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-cyan-400">
+                      Sponsor Logo / Card Artwork
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-white/70 mb-1.5">
+                          Option A: Upload Logo Image / SVG from Computer
+                        </label>
+                        <input
+                          ref={sponsorFileInputRef}
+                          type="file"
+                          accept="image/*,.svg"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) {
+                              setSponsorLogoFile(f);
+                              setSponsorImage('');
+                            }
+                          }}
+                          className="w-full text-xs text-white/70 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500 file:text-black hover:file:bg-cyan-400 cursor-pointer"
+                        />
+                        {sponsorLogoFile && (
+                          <span className="text-xs text-emerald-400 mt-1 block">
+                            ✓ Selected: {sponsorLogoFile.name} (will be saved to /public/images/sponsors/)
+                          </span>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-white/70 mb-1.5">
+                          Option B: Or Enter Image / SVG URL
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="/images/sponsors/sp-google-cloud.svg or https://..."
+                          value={sponsorImage}
+                          onChange={(e) => {
+                            setSponsorImage(e.target.value);
+                            if (e.target.value) setSponsorLogoFile(null);
+                          }}
+                          className="w-full bg-black/60 border border-white/15 focus:border-cyan-400 rounded-lg px-4 py-2 text-xs text-white focus:outline-none font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Preview Thumbnail if image or file selected */}
+                    {(sponsorLogoFile || sponsorImage) && (
+                      <div className="flex items-center gap-3 pt-2">
+                        <span className="text-[11px] text-white/50">Logo Preview:</span>
+                        <div className="w-12 h-12 rounded-lg bg-neutral-900 border border-cyan-500/30 p-1 flex items-center justify-center overflow-hidden">
+                          <img
+                            src={sponsorLogoFile ? URL.createObjectURL(sponsorLogoFile) : sponsorImage}
+                            alt="Logo Preview"
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Row 4: Back of Card Details */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-semibold text-white/80">
+                        Card Content Details (Printed on Back of 3D Card)
+                      </label>
+                      <span className="text-[11px] font-mono text-cyan-400">One bullet point per line</span>
+                    </div>
+                    <textarea
+                      rows={4}
+                      value={sponsorDetailsText}
+                      onChange={(e) => setSponsorDetailsText(e.target.value)}
+                      placeholder="Role: Title Sponsor & Cloud Infrastructure&#10;Offering: $10,000+ Vertex AI Credits & Cloud Sandbox&#10;Tracks: GenAI, Autonomous Agents & Big Data&#10;Status: Verified Strategic Partner"
+                      className="w-full bg-black/60 border border-white/15 focus:border-cyan-400 rounded-lg px-4 py-2.5 text-xs font-mono text-white focus:outline-none resize-none leading-relaxed"
+                    />
+                    <span className="text-[11px] text-white/40 mt-1 block">
+                      When a visitor flips the card in 3D inspection mode, these lines appear as verified specification chips.
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-2">
+                    <button
+                      type="submit"
+                      disabled={isUploadingSponsor}
+                      className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 hover:to-cyan-500 disabled:opacity-50 text-black font-bold text-xs sm:text-sm rounded-xl flex items-center gap-2 transition shadow-lg shadow-cyan-500/20"
+                    >
+                      {editingSponsorId ? (
+                        <>
+                          <Check className="w-4 h-4" /> {isUploadingSponsor ? 'Saving Changes...' : 'Update Sponsor Card'}
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4" /> {isUploadingSponsor ? 'Adding Sponsor...' : 'Add Sponsor Card'}
+                        </>
+                      )}
+                    </button>
+
+                    {editingSponsorId && (
+                      <button
+                        type="button"
+                        onClick={resetSponsorForm}
+                        className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold rounded-xl transition"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+
+              {/* 3. CURRENT SPONSORS ORDERED GRID */}
+              <div className="bg-[#121212] border border-white/10 p-6 sm:p-8 rounded-2xl">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-white">
+                      Current Picture Rail Sponsors ({currentSponsorList.length})
+                    </h3>
+                    <p className="text-xs sm:text-sm text-white/60">
+                      Use arrows to reorder along the hanging picture rail. Click Edit to customize card content.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {currentSponsorList.map((sp: SponsorItem, idx: number) => (
+                    <div
+                      key={sp.id}
+                      className={`relative bg-black/60 border rounded-xl overflow-hidden p-4 flex flex-col justify-between group transition-all duration-200 ${
+                        editingSponsorId === sp.id ? 'border-cyan-400 shadow-[0_0_20px_rgba(0,210,255,0.3)]' : 'border-white/10 hover:border-cyan-500/40'
+                      }`}
+                    >
+                      <div>
+                        {/* Visual Thumbnail */}
+                        <div className="w-full h-36 rounded-lg overflow-hidden mb-3 bg-[#020617] border border-cyan-500/20 p-2 flex items-center justify-center relative">
+                          <img
+                            src={sp.image}
+                            alt={sp.title}
+                            className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_4px_10px_rgba(0,210,255,0.4)]"
+                          />
+                          {sp.tag && (
+                            <span className="absolute top-2 right-2 text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-400 text-cyan-300">
+                              {sp.tag}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-xs font-mono text-cyan-400 font-bold">
+                            Position #{idx + 1}
+                          </span>
+                          <span className="text-[10px] text-white/50 uppercase font-mono">
+                            {sp.year || 'Partner'}
+                          </span>
+                        </div>
+
+                        <h4 className="text-base font-bold text-white font-display truncate">
+                          {sp.title}
+                        </h4>
+                        {sp.artist && (
+                          <p className="text-xs text-white/60 font-mono truncate mb-2">
+                            {sp.artist}
+                          </p>
+                        )}
+
+                        {/* Details count preview */}
+                        {sp.details && sp.details.length > 0 && (
+                          <div className="flex items-center gap-1.5 text-[10px] text-cyan-300 font-mono bg-cyan-500/10 px-2 py-1 rounded mb-2">
+                            <Layers className="w-3 h-3" />
+                            <span>{sp.details.length} back-card specification points</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action Controls */}
+                      <div className="flex items-center justify-between pt-3 border-t border-white/10 mt-2">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => moveSponsor(idx, 'left')}
+                            disabled={idx === 0}
+                            className="p-1.5 rounded bg-white/5 hover:bg-white/15 disabled:opacity-20 text-white transition"
+                            title="Move Left (Earlier on Rail)"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveSponsor(idx, 'right')}
+                            disabled={idx === currentSponsorList.length - 1}
+                            className="p-1.5 rounded bg-white/5 hover:bg-white/15 disabled:opacity-20 text-white transition"
+                            title="Move Right (Later on Rail)"
+                          >
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => startEditingSponsor(sp)}
+                            className="px-2.5 py-1.5 rounded bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-bold flex items-center gap-1 transition"
+                            title="Edit Sponsor Card"
+                          >
+                            <Pencil className="w-3 h-3" /> Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm(`Delete "${sp.title}" from the Sponsors rail?`)) {
+                                removeSponsorItem(sp.id);
+                                if (editingSponsorId === sp.id) resetSponsorForm();
+                                showToast(`Removed "${sp.title}" from sponsors!`);
+                              }
+                            }}
+                            className="p-1.5 rounded bg-red-950/60 hover:bg-red-900 border border-red-500/30 text-red-400 transition"
+                            title="Delete Sponsor Card"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-
-            {/* Sponsor Tagline */}
-            <div className="bg-black/50 p-5 rounded-xl border border-white/10">
-              <label className="block text-xs uppercase tracking-wider text-white/70 font-semibold mb-2">
-                Sponsors Section Tagline
-              </label>
-              <textarea
-                rows={2}
-                value={siteData.sponsors.sponsorTagline}
-                onChange={(e) => updateSponsors({ sponsorTagline: e.target.value })}
-                className="w-full bg-black/80 border border-white/15 focus:border-cyan-400 rounded-lg px-4 py-2 text-white text-sm focus:outline-none resize-none"
-              />
-            </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );

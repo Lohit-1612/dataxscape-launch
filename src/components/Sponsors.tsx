@@ -1,127 +1,18 @@
 import React from 'react';
-import { PictureRailGallery, PictureRailItem } from './ui/picture-rail-gallery';
-import { useSiteData } from '../context/SiteDataContext';
+import { PictureRailGallery } from './ui/picture-rail-gallery';
+import { useSiteData, DEFAULT_SPONSORS } from '../context/SiteDataContext';
 
 export const Sponsors: React.FC = () => {
   const { siteData } = useSiteData();
-  const { titleSponsorName, sponsorTagline, sponsorLogoUrl } = siteData.sponsors;
+  const { sponsorTagline, items } = siteData.sponsors;
 
-  // Curated tier list representing high-tier tech partners for DataXscape 2.0
-  const sponsorItems: PictureRailItem[] = [
-    {
-      id: 'sp-google-cloud',
-      title: titleSponsorName || 'Google Cloud',
-      artist: 'Global Cloud & AI Ecosystem',
-      year: 'Title Sponsor',
-      image: sponsorLogoUrl || '/images/sponsors/sp-google-cloud.svg',
-      aspect: 0.8,
-      frame: 'black',
-      mat: true,
-      drop: 0,
-      tag: 'TITLE SPONSOR',
-      details: [
-        'Role: Title Sponsor & Cloud Infrastructure',
-        'Offering: $10,000+ Vertex AI Credits & Cloud Sandbox Access',
-        'Tracks: GenAI, Autonomous Agents & Big Data Systems',
-        'Status: Verified Strategic Partner',
-      ],
-    },
-    {
-      id: 'sp-github',
-      title: 'GitHub',
-      artist: 'Global Developer Platform',
-      year: 'Platform Partner',
-      image: '/images/sponsors/sp-github.svg',
-      aspect: 0.8,
-      frame: 'black',
-      mat: true,
-      drop: 0.05,
-      tag: 'DEV PLATFORM',
-      details: [
-        'Role: Official Developer Platform Partner',
-        'Offering: GitHub Copilot Subscriptions & Codespaces',
-        'Tracks: Open Source & Code Quality Excellence',
-        'Status: Verified Strategic Partner',
-      ],
-    },
-    {
-      id: 'sp-vercel',
-      title: 'Vercel',
-      artist: 'Frontend Cloud & AI Deployment',
-      year: 'Deployment Partner',
-      image: '/images/sponsors/sp-vercel.svg',
-      aspect: 0.8,
-      frame: 'black',
-      mat: true,
-      drop: -0.05,
-      tag: 'CLOUD DEPLOYMENT',
-      details: [
-        'Role: Official Cloud Deployment Partner',
-        'Offering: Instant Edge Deployment & AI SDK Support',
-        'Tracks: Modern Web Apps & Real-time Systems',
-        'Status: Verified Strategic Partner',
-      ],
-    },
-    {
-      id: 'sp-postman',
-      title: 'Postman',
-      artist: 'API Platform for Developers',
-      year: 'API Innovation Partner',
-      image: '/images/sponsors/sp-postman.svg',
-      aspect: 0.8,
-      frame: 'black',
-      mat: true,
-      drop: 0.08,
-      tag: 'API INNOVATION',
-      details: [
-        'Role: Official API Innovation Partner',
-        'Offering: Postman Enterprise Workspaces & Testing Suite',
-        'Tracks: Microservices & API Orchestration',
-        'Status: Verified Strategic Partner',
-      ],
-    },
-    {
-      id: 'sp-supabase',
-      title: 'Supabase',
-      artist: 'Open Source Firebase Alternative',
-      year: 'Database Partner',
-      image: '/images/sponsors/sp-supabase.svg',
-      aspect: 0.8,
-      frame: 'black',
-      mat: true,
-      drop: -0.03,
-      tag: 'DATA & STORAGE',
-      details: [
-        'Role: Official Data Infrastructure Partner',
-        'Offering: Dedicated Managed Postgres & Vector Storage',
-        'Tracks: High-Scale Databases & Realtime Sync',
-        'Status: Verified Strategic Partner',
-      ],
-    },
-    {
-      id: 'sp-ds-club',
-      title: 'Data Science Club',
-      artist: 'Dept. of AI & DS, Panimalar',
-      year: 'Organizing Host',
-      image: '/images/sponsors/sp-ds-club.svg',
-      aspect: 0.8,
-      frame: 'oak',
-      mat: true,
-      drop: 0.04,
-      tag: 'HOST & COMMUNITY',
-      details: [
-        'Role: Lead Organizing Community',
-        'Institution: Panimalar Engineering College',
-        'Mission: Advancing AI, Data Science & Student Innovation',
-        'Edition: DataXscape 2.0 National Level Hackathon',
-      ],
-    },
-  ];
+  // Use dynamically managed sponsors from admin portal, fallback to defaults
+  const currentItems = Array.isArray(items) && items.length > 0 ? items : DEFAULT_SPONSORS;
 
   return (
     <section id="sponsors" className="relative py-12 sm:py-20 z-10 overflow-hidden">
       <PictureRailGallery
-        items={sponsorItems}
+        items={currentItems}
         eyebrow="STRATEGIC ALLIANCES & TECH LEADERS"
         heading="Sponsors & Innovation Partners"
         caption={
