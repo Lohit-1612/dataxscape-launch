@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { setPersistentData, getPersistentData, compressImage } from '../utils/storage';
+import { countdownSync, SyncPayload } from '../services/countdownSync';
 
 export interface GalleryPhoto {
   id: string;
@@ -390,7 +391,89 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     loadData();
 
-    // Step D: Set up SSE listener for zero-delay remote start/stop triggers
+    // Step D: Cloud Real-time MQTT synchronization (ultra-fast, cross-device, works on Vercel)
+    const unsubscribeSync = countdownSync.subscribe((payload: SyncPayload) => {
+      console.log('[SiteDataContext] Real-time cloud sync received:', payload);
+      setSiteData((prev) => {
+        const isRunning = payload.isRunning;
+        const hasStarted = payload.hasStarted;
+
+        // Animate birth only if action is START and triggered recently (<15 seconds ago)
+        const isRecent = Boolean(payload.sentAt && Math.abs(Date.now() - payload.sentAt) < 15000);
+        const animateBirth = payload.type === 'START' && isRecent;
+
+        let remSecs = typeof payload.remainingSeconds === 'number'
+          ? payload.remainingSeconds
+          : prev.countdown.remainingSeconds;
+
+        if (isRunning && payload.targetEpoch) {
+          remSecs = Math.max(0, Math.ceil((payload.targetEpoch - Date.now()) / 1000));
+        }
+
+        if (
+          prev.countdown.isRunning === isRunning &&
+          prev.countdown.hasStarted === hasStarted &&
+          !animateBirth &&
+          prev.countdown.targetEpoch === payload.targetEpoch &&
+          Math.abs((prev.countdown.remainingSeconds || 0) - (remSecs || 0)) <= 1
+        ) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          countdown: {
+            ...prev.countdown,
+            isRunning,
+            hasStarted,
+            animateBirth: animateBirth ? true : (prev.countdown.animateBirth && isRunning),
+            remainingSeconds: remSecs,
+            targetEpoch: payload.targetEpoch,
+          },
+        };
+      });
+    });
+
+    // Step E: Same-device BroadcastChannel for zero-latency multi-tab sync
+    let bc: BroadcastChannel | null = null;
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        bc = new BroadcastChannel('dataxscape_countdown_sync');
+        bc.onmessage = (event) => {
+          const payload = event.data as SyncPayload;
+          if (payload) {
+            setSiteData((prev) => {
+              const isRunning = payload.isRunning;
+              const hasStarted = payload.hasStarted;
+              const isRecent = Boolean(payload.sentAt && Math.abs(Date.now() - payload.sentAt) < 15000);
+              const animateBirth = payload.type === 'START' && isRecent;
+
+              let remSecs = typeof payload.remainingSeconds === 'number'
+                ? payload.remainingSeconds
+                : prev.countdown.remainingSeconds;
+
+              if (isRunning && payload.targetEpoch) {
+                remSecs = Math.max(0, Math.ceil((payload.targetEpoch - Date.now()) / 1000));
+              }
+
+              return {
+                ...prev,
+                countdown: {
+                  ...prev.countdown,
+                  isRunning,
+                  hasStarted,
+                  animateBirth: animateBirth ? true : (prev.countdown.animateBirth && isRunning),
+                  remainingSeconds: remSecs,
+                  targetEpoch: payload.targetEpoch,
+                },
+              };
+            });
+          }
+        };
+      }
+    } catch {}
+
+    // Step F: Set up SSE listener for local dev server
     let evtSource: EventSource | null = null;
     try {
       evtSource = new EventSource('/api/countdown/events');
@@ -408,7 +491,6 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 ? payload.hasStarted
                 : (isRunning ? true : Boolean(prev.countdown.hasStarted));
               
-              // Only trigger birth animation on an explicit START event from mobile remote, NEVER on refresh / INIT!
               const animateBirth = payload.type === 'START';
 
               if (
@@ -442,11 +524,13 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       console.warn('EventSource connection note:', err);
     }
 
-    // Step D: Polling fallback every 1.5s
+    // Step G: Polling fallback every 2s
     const pollInterval = setInterval(async () => {
       try {
         const res = await fetch('/api/countdown/status');
         if (res.ok) {
+          const contentType = res.headers.get('content-type') || '';
+          if (!contentType.includes('application/json')) return;
           const status = await res.json();
           if (typeof status.isRunning === 'boolean' || typeof status.hasStarted === 'boolean') {
             setSiteData((prev) => {
@@ -455,14 +539,12 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 ? status.hasStarted
                 : (isRunning ? true : Boolean(prev.countdown.hasStarted));
 
-              // If running and hasStarted state hasn't changed:
               if (
                 prev.countdown.isRunning === isRunning &&
                 prev.countdown.hasStarted === hasStarted &&
                 !prev.countdown.animateBirth
               ) {
                 if (isRunning) {
-                  // Synchronize targetEpoch if server sent a fresh one
                   if (status.targetEpoch && prev.countdown.targetEpoch !== status.targetEpoch) {
                     return {
                       ...prev,
@@ -501,10 +583,12 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           }
         }
       } catch {}
-    }, 1500);
+    }, 2000);
 
     return () => {
       isCancelled = true;
+      unsubscribeSync();
+      bc?.close();
       evtSource?.close();
       clearInterval(pollInterval);
     };
@@ -552,6 +636,13 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Remote trigger: Start countdown
   const startCountdown = async () => {
+    let startFrom = siteData.countdown.remainingSeconds || (41 * 86400 + 21 * 3600 + 20 * 60 + 47);
+    if (startFrom <= 0) {
+      startFrom = 41 * 86400 + 21 * 3600 + 20 * 60 + 47;
+    }
+    const targetEpoch = Date.now() + startFrom * 1000;
+
+    // 1. Local state update
     setSiteData((prev) => ({
       ...prev,
       countdown: {
@@ -559,24 +650,53 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         isRunning: true,
         hasStarted: true,
         animateBirth: true,
+        remainingSeconds: startFrom,
+        targetEpoch,
       },
     }));
+
+    const payload: SyncPayload = {
+      type: 'START',
+      hasStarted: true,
+      isRunning: true,
+      animateBirth: true,
+      remainingSeconds: startFrom,
+      targetEpoch,
+      sentAt: Date.now(),
+    };
+
+    // 2. Publish to cloud MQTT sync
+    countdownSync.publish(payload);
+
+    // 3. Local BroadcastChannel
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('dataxscape_countdown_sync');
+        bc.postMessage(payload);
+        bc.close();
+      }
+    } catch {}
+
+    // 4. Local dev API
     try {
       const res = await fetch('/api/countdown/start', { method: 'POST' });
       if (res.ok) {
-        const data = await res.json();
-        if (typeof data.remainingSeconds === 'number') {
-          setSiteData((prev) => ({
-            ...prev,
-            countdown: {
-              ...prev.countdown,
-              isRunning: true,
-              hasStarted: true,
-              animateBirth: true,
-              remainingSeconds: data.remainingSeconds,
-              targetEpoch: data.targetEpoch,
-            },
-          }));
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await res.json();
+          if (typeof data.remainingSeconds === 'number') {
+            setSiteData((prev) => ({
+              ...prev,
+              countdown: {
+                ...prev.countdown,
+                isRunning: true,
+                hasStarted: true,
+                animateBirth: true,
+                remainingSeconds: data.remainingSeconds,
+                targetEpoch: data.targetEpoch || targetEpoch,
+              },
+            }));
+          }
         }
       }
     } catch (e) {
@@ -599,46 +719,76 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Remote trigger: Stop/Pause countdown
   const stopCountdown = async (currentSecondsRemaining?: number) => {
-    setSiteData((prev) => {
-      const remainingSecs = typeof currentSecondsRemaining === 'number'
-        ? currentSecondsRemaining
-        : prev.countdown.remainingSeconds;
-      return {
-        ...prev,
-        countdown: {
-          ...prev.countdown,
-          isRunning: false,
-          hasStarted: true, // Keep it visible in paused state!
-          animateBirth: false,
-          remainingSeconds: remainingSecs,
-          targetEpoch: undefined,
-        },
-      };
-    });
+    let remainingSecs = typeof currentSecondsRemaining === 'number'
+      ? currentSecondsRemaining
+      : siteData.countdown.remainingSeconds;
+
+    if (typeof remainingSecs !== 'number' || remainingSecs <= 0) {
+      if (siteData.countdown.targetEpoch) {
+        remainingSecs = Math.max(0, Math.ceil((siteData.countdown.targetEpoch - Date.now()) / 1000));
+      } else {
+        remainingSecs = 41 * 86400 + 21 * 3600 + 20 * 60 + 47;
+      }
+    }
+
+    // 1. Local state update
+    setSiteData((prev) => ({
+      ...prev,
+      countdown: {
+        ...prev.countdown,
+        isRunning: false,
+        hasStarted: true, // Keep it visible in paused state!
+        animateBirth: false,
+        remainingSeconds: remainingSecs,
+        targetEpoch: undefined,
+      },
+    }));
+
+    const payload: SyncPayload = {
+      type: 'STOP',
+      hasStarted: true,
+      isRunning: false,
+      animateBirth: false,
+      remainingSeconds: remainingSecs,
+      sentAt: Date.now(),
+    };
+
+    // 2. Publish to cloud MQTT sync
+    countdownSync.publish(payload);
+
+    // 3. Local BroadcastChannel
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('dataxscape_countdown_sync');
+        bc.postMessage(payload);
+        bc.close();
+      }
+    } catch {}
+
+    // 4. Local dev API
     try {
       const res = await fetch('/api/countdown/stop', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          typeof currentSecondsRemaining === 'number'
-            ? { remainingSeconds: currentSecondsRemaining }
-            : {}
-        ),
+        body: JSON.stringify({ remainingSeconds: remainingSecs }),
       });
       if (res.ok) {
-        const data = await res.json();
-        if (typeof data.remainingSeconds === 'number') {
-          setSiteData((prev) => ({
-            ...prev,
-            countdown: {
-              ...prev.countdown,
-              isRunning: false,
-              hasStarted: true,
-              animateBirth: false,
-              remainingSeconds: data.remainingSeconds,
-              targetEpoch: undefined,
-            },
-          }));
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await res.json();
+          if (typeof data.remainingSeconds === 'number') {
+            setSiteData((prev) => ({
+              ...prev,
+              countdown: {
+                ...prev.countdown,
+                isRunning: false,
+                hasStarted: true,
+                animateBirth: false,
+                remainingSeconds: data.remainingSeconds,
+                targetEpoch: undefined,
+              },
+            }));
+          }
         }
       }
     } catch (e) {
@@ -648,6 +798,7 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Re-arm stage countdown (Admin: sets hasStarted=false, making screen empty again)
   const rearmCountdown = async () => {
+    // 1. Local state update
     setSiteData((prev) => ({
       ...prev,
       countdown: {
@@ -658,6 +809,28 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         targetEpoch: undefined,
       },
     }));
+
+    const payload: SyncPayload = {
+      type: 'REARM',
+      hasStarted: false,
+      isRunning: false,
+      animateBirth: false,
+      sentAt: Date.now(),
+    };
+
+    // 2. Publish to cloud MQTT sync
+    countdownSync.publish(payload);
+
+    // 3. Local BroadcastChannel
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('dataxscape_countdown_sync');
+        bc.postMessage(payload);
+        bc.close();
+      }
+    } catch {}
+
+    // 4. Local dev API
     try {
       await fetch('/api/countdown/rearm', { method: 'POST' });
     } catch (e) {

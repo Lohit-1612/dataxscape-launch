@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSiteData } from '../context/SiteDataContext';
+import { countdownSync } from '../services/countdownSync';
 import { Play, Pause, Smartphone, CheckCircle, Radio, RotateCcw } from 'lucide-react';
 
 export const MobileRemote: React.FC = () => {
@@ -9,9 +10,16 @@ export const MobileRemote: React.FC = () => {
   const [authError, setAuthError] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [isCloudConnected, setIsCloudConnected] = useState(countdownSync.getStatus());
   const REMOTE_PASSCODE = 'admin123';
   const isRunning = siteData.countdown.isRunning;
   const hasStarted = Boolean(siteData.countdown.hasStarted || isRunning);
+
+  useEffect(() => {
+    return countdownSync.onStatusChange((connected) => {
+      setIsCloudConnected(connected);
+    });
+  }, []);
 
   const getSeconds = (): number => {
     if (siteData.countdown.targetEpoch && siteData.countdown.isRunning) {
@@ -165,9 +173,13 @@ export const MobileRemote: React.FC = () => {
 
       {/* Header */}
       <header className="pt-2 text-center">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-mono font-bold tracking-widest uppercase mb-3">
-          <Radio className="w-3.5 h-3.5 animate-pulse" />
-          <span>ONLINE • CONNECTED TO STAGE</span>
+        <div className={`inline-flex items-center gap-2 px-3.5 py-1 rounded-full border text-[11px] font-mono font-bold tracking-widest uppercase mb-3 transition-colors ${
+          isCloudConnected
+            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+            : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+        }`}>
+          <Radio className={`w-3.5 h-3.5 ${isCloudConnected ? 'animate-pulse text-emerald-400' : 'text-amber-400'}`} />
+          <span>{isCloudConnected ? 'ONLINE • STAGE SYNC ACTIVE' : 'CONNECTING TO STAGE CLOUD...'}</span>
         </div>
         <h1 className="text-xl sm:text-2xl font-black text-white tracking-wider font-display">
           DATAXSCAPE 2.0
