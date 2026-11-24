@@ -5,7 +5,7 @@ import { RADIAL_TIMELINE_DATA } from '../data/timelineData';
 
 export const Timeline: React.FC = () => {
   return (
-    <section className="relative py-16 sm:py-24 px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto z-10 overflow-visible">
+    <section id="timeline" className="relative py-16 sm:py-24 px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto z-10 scroll-mt-20 overflow-visible">
       {/* Header */}
       <div className="text-center mb-6 sm:mb-10">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold tracking-widest uppercase mb-3">

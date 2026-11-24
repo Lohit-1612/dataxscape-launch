@@ -475,7 +475,7 @@ export const Sponsors: React.FC = () => {
   }, []);
 
   return (
-    <section className="relative py-16 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto z-10 overflow-hidden">
+    <section id="sponsors" className="relative py-20 sm:py-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto z-10 scroll-mt-20 overflow-hidden">
       {/* Background Ambient Glow Orbs */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-r from-cyan-500/10 via-sky-500/15 to-blue-600/10 rounded-full blur-[120px] pointer-events-none -z-10" />
       <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[300px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />

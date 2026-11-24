@@ -10,117 +10,45 @@ import { Patrons } from '../components/Patrons';
 import { Prizes } from '../components/Prizes';
 import { Faq } from '../components/Faq';
 import { Footer } from '../components/Footer';
-import { SectionTransition } from '../components/ui/SectionTransition';
 
 export const LandingPage: React.FC = () => {
   return (
-    <div className="relative min-h-screen bg-[#020617] text-white selection:bg-cyan-500 selection:text-black overflow-x-hidden">
+    <div className="relative min-h-screen bg-[#020617] text-white selection:bg-cyan-500 selection:text-black">
       {/* 60 FPS Electric Blue / Cyan Bokeh Particle Canvas */}
       <ParticleBackground />
 
-      {/* Navigation Header */}
+      {/* Navigation Header (Strictly Zero Admin Buttons) */}
       <Navbar />
 
-      {/* Main Content Sections with Cyber Transitions */}
-      <main className="relative z-10 flex flex-col overflow-x-clip">
+      {/* Main Content Sections */}
+      <main className="relative z-10 flex flex-col">
         {/* 1. Hero Section (with First Page Countdown) */}
-        <SectionTransition
-          showLaser={false}
-          direction="none"
-          ambientAura="cyan"
-        >
-          <Hero />
-        </SectionTransition>
+        <Hero />
 
         {/* 2. About Section */}
-        <SectionTransition
-          id="about"
-          sectionNumber="01"
-          sectionTitle="MISSION INTEL"
-          direction="up"
-          ambientAura="cyan"
-        >
-          <About />
-        </SectionTransition>
+        <About />
 
-        {/* 3. Event Timeline */}
-        <SectionTransition
-          id="timeline"
-          sectionNumber="02"
-          sectionTitle="ORBITAL ROADMAP"
-          direction="left"
-          ambientAura="blue"
-        >
-          <Timeline />
-        </SectionTransition>
+        {/* 4. Event Timeline */}
+        <Timeline />
 
-        {/* 4. 3D Coverflow Gallery */}
-        <SectionTransition
-          id="gallery"
-          sectionNumber="03"
-          sectionTitle="VISUAL ARCHIVE"
-          direction="right"
-          ambientAura="purple"
-        >
-          <Gallery3D />
-        </SectionTransition>
+        {/* 5. 3D Coverflow Gallery */}
+        <Gallery3D />
 
-        {/* 5. Sponsors & Innovation Partners */}
-        <SectionTransition
-          id="sponsors"
-          sectionNumber="04"
-          sectionTitle="STRATEGIC ALLIANCES"
-          direction="left"
-          ambientAura="cyan"
-        >
-          <Sponsors />
-        </SectionTransition>
+        {/* 6. Sponsors & Innovation Partners (Picture Rail Gallery) */}
+        <Sponsors />
 
-        {/* 6. Leadership Directory (Patrons, Co-Patrons, Convener) */}
-        <SectionTransition
-          id="patrons"
-          sectionNumber="05"
-          sectionTitle="LEADERSHIP COUNCIL"
-          direction="right"
-          ambientAura="indigo"
-        >
-          <Patrons />
-        </SectionTransition>
+        {/* 7. Leadership Directory (Patrons, Co-Patrons, Convener) */}
+        <Patrons />
 
         {/* 7. Prizes & Awards Podium */}
-        <SectionTransition
-          id="prizes"
-          sectionNumber="06"
-          sectionTitle="REWARDS PODIUM"
-          direction="up"
-          ambientAura="gold"
-        >
-          <Prizes />
-        </SectionTransition>
+        <Prizes />
 
         {/* 8. Interactive FAQ Accordion */}
-        <SectionTransition
-          id="faq"
-          sectionNumber="07"
-          sectionTitle="INTELLIGENCE FAQ"
-          direction="up"
-          ambientAura="cyan"
-        >
-          <Faq />
-        </SectionTransition>
+        <Faq />
       </main>
 
-      {/* 9. Footer & Communication Channels */}
-      <SectionTransition
-        id="contact"
-        sectionNumber="08"
-        sectionTitle="COMMUNICATION TERMINAL"
-        direction="none"
-        showLaser={true}
-        ambientAura="blue"
-      >
-        <Footer />
-      </SectionTransition>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
