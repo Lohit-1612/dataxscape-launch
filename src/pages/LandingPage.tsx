@@ -9,8 +9,6 @@ import { Sponsors } from '../components/Sponsors';
 import { Patrons } from '../components/Patrons';
 import { Prizes } from '../components/Prizes';
 import { Faq } from '../components/Faq';
-import { VenueMap } from '../components/VenueMap';
-import { Contact } from '../components/Contact';
 import { Footer } from '../components/Footer';
 
 export const LandingPage: React.FC = () => {
@@ -47,12 +45,6 @@ export const LandingPage: React.FC = () => {
 
         {/* 8. Interactive FAQ Accordion */}
         <Faq />
-
-        {/* 10. Venue Location Map */}
-        <VenueMap />
-
-        {/* 11. Contact Form & Google Form Link */}
-        <Contact />
       </main>
 
       {/* Footer */}

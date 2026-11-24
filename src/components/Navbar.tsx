@@ -35,27 +35,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onSecretAdminTrigger }) => {
       }`}
     >
       <div className="max-w-[96%] xl:max-w-[1440px] mx-auto px-2.5 sm:px-6 flex items-center justify-between gap-2 sm:gap-4">
-        {/* Left: Panimalar Engineering College Logo & Typography */}
-        <a href="#" className="flex items-center gap-2 sm:gap-3.5 group flex-shrink min-w-0">
+        {/* Left: Panimalar Engineering College Official Logo */}
+        <a href="#" className="flex items-center group flex-shrink-0">
           <img
             src="/images/panimalar-logo.png"
-            alt="Panimalar Engineering College Logo"
-            className="w-9 h-9 sm:w-12 sm:h-12 md:w-16 md:h-16 object-contain flex-shrink-0 group-hover:scale-105 transition-transform duration-200"
+            alt="Panimalar Engineering College - An Autonomous Institution"
+            className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto max-w-[220px] sm:max-w-[280px] md:max-w-none object-contain group-hover:scale-105 transition-transform duration-200"
           />
-          <div className="flex flex-col text-left truncate">
-            <span className="text-white font-black text-xs sm:text-base md:text-lg tracking-wider leading-tight uppercase font-display truncate">
-              PANIMALAR
-            </span>
-            <span className="text-white/95 font-bold text-[9px] sm:text-xs md:text-sm tracking-wide leading-tight uppercase truncate">
-              ENGINEERING COLLEGE
-            </span>
-            <span className="text-cyan-400 font-semibold text-[8px] sm:text-[10px] leading-tight truncate">
-              An Autonomous Institution
-            </span>
-            <span className="text-white/70 text-[8px] sm:text-[9px] leading-tight hidden lg:block">
-              Affiliated to Anna University, Chennai (JAISAKTHI EDUCATIONAL TRUST)
-            </span>
-          </div>
         </a>
 
         {/* Center: Navigation Links + Our Community placed near Contact */}
