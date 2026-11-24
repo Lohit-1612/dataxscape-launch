@@ -93,7 +93,7 @@ export const Faq: React.FC = () => {
       <div className="mt-10 sm:mt-12 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/10 text-xs text-white/60">
           <HelpCircle className="w-4 h-4 text-cyan-400" />
-          <span>Have an unanswered question? Reach out through our contact channel below.</span>
+          <span>Have an unanswered question? Reach out to us through our contact channels in the footer below.</span>
         </div>
       </div>
     </section>
