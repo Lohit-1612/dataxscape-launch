@@ -29,7 +29,7 @@ export const Patrons: React.FC = () => {
   );
 
   return (
-    <section className="relative py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto z-10">
+    <section id="patrons" className="relative py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto z-10 scroll-mt-20">
       {/* 1. PATRONS */}
       <div className="mb-16">
         <h3 className="text-2xl sm:text-3xl font-extrabold text-white text-center tracking-widest uppercase mb-10 font-display">

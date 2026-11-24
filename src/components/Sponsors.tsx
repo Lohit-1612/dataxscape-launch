@@ -10,7 +10,7 @@ export const Sponsors: React.FC = () => {
   const currentItems = Array.isArray(items) && items.length > 0 ? items : DEFAULT_SPONSORS;
 
   return (
-    <section id="sponsors" className="relative py-12 sm:py-20 z-10 overflow-hidden">
+    <section id="sponsors" className="relative py-12 sm:py-20 z-10 overflow-hidden scroll-mt-20">
       <PictureRailGallery
         items={currentItems}
         eyebrow="STRATEGIC ALLIANCES & TECH LEADERS"

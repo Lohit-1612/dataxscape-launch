@@ -4,7 +4,7 @@ import { Sparkles } from 'lucide-react';
 
 export const Hero: React.FC = () => {
   return (
-    <section className="relative min-h-[85vh] flex flex-col items-center justify-center pt-24 sm:pt-32 pb-10 sm:pb-14 px-3 sm:px-6 text-center z-10 overflow-hidden">
+    <section id="hero" className="relative min-h-[85vh] flex flex-col items-center justify-center pt-24 sm:pt-32 pb-10 sm:pb-14 px-3 sm:px-6 text-center z-10 overflow-hidden scroll-mt-20">
       {/* Ambient Radial Spotlight Aura in Electric Blue */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] sm:w-[650px] md:w-[850px] h-[340px] sm:h-[550px] bg-gradient-to-tr from-cyan-500/15 via-blue-600/10 to-transparent rounded-full blur-[90px] sm:blur-[130px] pointer-events-none -z-10" />
 

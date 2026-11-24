@@ -10,45 +10,64 @@ import { Patrons } from '../components/Patrons';
 import { Prizes } from '../components/Prizes';
 import { Faq } from '../components/Faq';
 import { Footer } from '../components/Footer';
+import { HorizontalSectionTransition } from '../components/ui/SectionTransition';
 
 export const LandingPage: React.FC = () => {
   return (
-    <div className="relative min-h-screen bg-[#020617] text-white selection:bg-cyan-500 selection:text-black">
+    <div className="relative min-h-screen bg-[#020617] text-white selection:bg-cyan-500 selection:text-black overflow-x-hidden">
       {/* 60 FPS Electric Blue / Cyan Bokeh Particle Canvas */}
       <ParticleBackground />
 
       {/* Navigation Header (Strictly Zero Admin Buttons) */}
       <Navbar />
 
-      {/* Main Content Sections */}
-      <main className="relative z-10 flex flex-col">
-        {/* 1. Hero Section (with First Page Countdown) */}
-        <Hero />
+      {/* Main Content Sections with Alternating Cyber Horizontal Transitions */}
+      <main className="relative z-10 flex flex-col overflow-x-clip">
+        {/* 1. Hero Section (with First Page Countdown) - Enters from Left */}
+        <HorizontalSectionTransition direction="left" showLaserBeam={false}>
+          <Hero />
+        </HorizontalSectionTransition>
 
-        {/* 2. About Section */}
-        <About />
+        {/* 2. About Section - Enters from Right */}
+        <HorizontalSectionTransition direction="right" showLaserBeam={true}>
+          <About />
+        </HorizontalSectionTransition>
 
-        {/* 4. Event Timeline */}
-        <Timeline />
+        {/* 3. Event Timeline - Enters from Left */}
+        <HorizontalSectionTransition direction="left" showLaserBeam={true}>
+          <Timeline />
+        </HorizontalSectionTransition>
 
-        {/* 5. 3D Coverflow Gallery */}
-        <Gallery3D />
+        {/* 4. 3D Coverflow Gallery - Enters from Right */}
+        <HorizontalSectionTransition direction="right" showLaserBeam={true}>
+          <Gallery3D />
+        </HorizontalSectionTransition>
 
-        {/* 6. Sponsors & Innovation Partners (Picture Rail Gallery) */}
-        <Sponsors />
+        {/* 5. Sponsors & Innovation Partners - Enters from Left */}
+        <HorizontalSectionTransition direction="left" showLaserBeam={true}>
+          <Sponsors />
+        </HorizontalSectionTransition>
 
-        {/* 7. Leadership Directory (Patrons, Co-Patrons, Convener) */}
-        <Patrons />
+        {/* 6. Leadership Directory - Enters from Right */}
+        <HorizontalSectionTransition direction="right" showLaserBeam={true} id="patrons">
+          <Patrons />
+        </HorizontalSectionTransition>
 
-        {/* 7. Prizes & Awards Podium */}
-        <Prizes />
+        {/* 7. Prizes & Awards Podium - Enters from Left */}
+        <HorizontalSectionTransition direction="left" showLaserBeam={true}>
+          <Prizes />
+        </HorizontalSectionTransition>
 
-        {/* 8. Interactive FAQ Accordion */}
-        <Faq />
+        {/* 8. Interactive FAQ Accordion - Enters from Right */}
+        <HorizontalSectionTransition direction="right" showLaserBeam={true}>
+          <Faq />
+        </HorizontalSectionTransition>
       </main>
 
-      {/* Footer */}
-      <Footer />
+      {/* Footer - Enters from Left */}
+      <HorizontalSectionTransition direction="left" showLaserBeam={false}>
+        <Footer />
+      </HorizontalSectionTransition>
     </div>
   );
 };
