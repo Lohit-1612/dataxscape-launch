@@ -42,7 +42,7 @@ export function RadialOrbitalTimeline({
   const orbitRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
-  // Responsive radius calculation so orbit stays perfectly proportioned on phones & tablets
+  // Responsive radius calculation so orbit stays perfectly proportioned on phones & tablets and expands on desktop
   useEffect(() => {
     const updateRadius = () => {
       if (typeof window !== "undefined") {
@@ -53,8 +53,12 @@ export function RadialOrbitalTimeline({
           setRadius(155);
         } else if (width < 1024) {
           setRadius(185);
+        } else if (width < 1280) {
+          setRadius(280);
+        } else if (width < 1536) {
+          setRadius(320);
         } else {
-          setRadius(215);
+          setRadius(350);
         }
       }
     };
@@ -177,11 +181,11 @@ export function RadialOrbitalTimeline({
 
   return (
     <div
-      className={`w-full relative min-h-[560px] sm:min-h-[640px] md:min-h-[700px] flex flex-col items-center justify-center bg-transparent select-none overflow-visible ${className}`}
+      className={`w-full relative min-h-[560px] sm:min-h-[640px] md:min-h-[700px] lg:min-h-[820px] xl:min-h-[900px] flex flex-col items-center justify-center bg-transparent select-none overflow-visible ${className}`}
       ref={containerRef}
       onClick={handleContainerClick}
     >
-      <div className="relative w-full max-w-4xl h-[520px] sm:h-[600px] flex items-center justify-center">
+      <div className="relative w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl h-[520px] sm:h-[600px] lg:h-[780px] xl:h-[860px] flex items-center justify-center">
         <div
           className="absolute w-full h-full flex items-center justify-center"
           ref={orbitRef}
@@ -191,14 +195,14 @@ export function RadialOrbitalTimeline({
           }}
         >
           {/* Glowing Planetary Core in Electric Cyan */}
-          <div className="absolute w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-cyan-400 via-sky-500 to-blue-600 animate-pulse flex items-center justify-center z-10 shadow-[0_0_40px_rgba(0,210,255,0.85)]">
-            <div className="absolute w-18 h-18 sm:w-20 sm:h-20 rounded-full border border-cyan-400/40 animate-ping opacity-70 pointer-events-none"></div>
+          <div className="absolute w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-cyan-400 via-sky-500 to-blue-600 animate-pulse flex items-center justify-center z-10 shadow-[0_0_40px_rgba(0,210,255,0.85)]">
+            <div className="absolute w-18 h-18 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full border border-cyan-400/40 animate-ping opacity-70 pointer-events-none"></div>
             <div
-              className="absolute w-22 h-22 sm:w-24 sm:h-24 rounded-full border border-cyan-300/25 animate-ping opacity-50 pointer-events-none"
+              className="absolute w-22 h-22 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-full border border-cyan-300/25 animate-ping opacity-50 pointer-events-none"
               style={{ animationDelay: "0.5s" }}
             ></div>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-inner">
-              <Zap className="w-4 h-4 text-cyan-600 fill-current" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-inner">
+              <Zap className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-600 fill-current" />
             </div>
           </div>
 
@@ -254,7 +258,7 @@ export function RadialOrbitalTimeline({
                 {/* Node Orb Circle */}
                 <div
                   className={`
-                  w-10 h-10 rounded-full flex items-center justify-center
+                  w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center
                   ${
                     isExpanded
                       ? "bg-cyan-400 text-black shadow-[0_0_25px_rgba(0,210,255,0.9)]"
@@ -274,14 +278,14 @@ export function RadialOrbitalTimeline({
                   ${isExpanded ? "scale-150" : ""}
                 `}
                 >
-                  <Icon size={16} />
+                  <Icon size={16} className="lg:w-5 lg:h-5" />
                 </div>
 
                 {/* Node Title Label */}
                 <div
                   className={`
-                  absolute top-12 left-1/2 -translate-x-1/2 whitespace-nowrap
-                  text-[11px] sm:text-xs font-semibold tracking-wider font-mono
+                  absolute top-12 lg:top-14 left-1/2 -translate-x-1/2 whitespace-nowrap
+                  text-[11px] sm:text-xs lg:text-sm font-semibold tracking-wider font-mono
                   transition-all duration-300 pointer-events-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]
                   ${isExpanded ? "text-cyan-300 scale-125 font-bold" : "text-white/80"}
                 `}
