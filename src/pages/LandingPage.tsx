@@ -10,7 +10,7 @@ import { Patrons } from '../components/Patrons';
 import { Prizes } from '../components/Prizes';
 import { Faq } from '../components/Faq';
 import { Footer } from '../components/Footer';
-import { HorizontalSectionTransition } from '../components/ui/SectionTransition';
+import { SectionTransition } from '../components/ui/SectionTransition';
 
 export const LandingPage: React.FC = () => {
   return (
@@ -18,56 +18,109 @@ export const LandingPage: React.FC = () => {
       {/* 60 FPS Electric Blue / Cyan Bokeh Particle Canvas */}
       <ParticleBackground />
 
-      {/* Navigation Header (Strictly Zero Admin Buttons) */}
+      {/* Navigation Header */}
       <Navbar />
 
-      {/* Main Content Sections with Alternating Cyber Horizontal Transitions */}
+      {/* Main Content Sections with Cyber Transitions */}
       <main className="relative z-10 flex flex-col overflow-x-clip">
-        {/* 1. Hero Section (with First Page Countdown) - Enters from Left */}
-        <HorizontalSectionTransition direction="left" showLaserBeam={false}>
+        {/* 1. Hero Section (with First Page Countdown) */}
+        <SectionTransition
+          showLaser={false}
+          direction="none"
+          ambientAura="cyan"
+        >
           <Hero />
-        </HorizontalSectionTransition>
+        </SectionTransition>
 
-        {/* 2. About Section - Enters from Right */}
-        <HorizontalSectionTransition direction="right" showLaserBeam={true}>
+        {/* 2. About Section */}
+        <SectionTransition
+          id="about"
+          sectionNumber="01"
+          sectionTitle="MISSION INTEL"
+          direction="up"
+          ambientAura="cyan"
+        >
           <About />
-        </HorizontalSectionTransition>
+        </SectionTransition>
 
-        {/* 3. Event Timeline - Enters from Left */}
-        <HorizontalSectionTransition direction="left" showLaserBeam={true}>
+        {/* 3. Event Timeline */}
+        <SectionTransition
+          id="timeline"
+          sectionNumber="02"
+          sectionTitle="ORBITAL ROADMAP"
+          direction="left"
+          ambientAura="blue"
+        >
           <Timeline />
-        </HorizontalSectionTransition>
+        </SectionTransition>
 
-        {/* 4. 3D Coverflow Gallery - Enters from Right */}
-        <HorizontalSectionTransition direction="right" showLaserBeam={true}>
+        {/* 4. 3D Coverflow Gallery */}
+        <SectionTransition
+          id="gallery"
+          sectionNumber="03"
+          sectionTitle="VISUAL ARCHIVE"
+          direction="right"
+          ambientAura="purple"
+        >
           <Gallery3D />
-        </HorizontalSectionTransition>
+        </SectionTransition>
 
-        {/* 5. Sponsors & Innovation Partners - Enters from Left */}
-        <HorizontalSectionTransition direction="left" showLaserBeam={true}>
+        {/* 5. Sponsors & Innovation Partners */}
+        <SectionTransition
+          id="sponsors"
+          sectionNumber="04"
+          sectionTitle="STRATEGIC ALLIANCES"
+          direction="left"
+          ambientAura="cyan"
+        >
           <Sponsors />
-        </HorizontalSectionTransition>
+        </SectionTransition>
 
-        {/* 6. Leadership Directory - Enters from Right */}
-        <HorizontalSectionTransition direction="right" showLaserBeam={true} id="patrons">
+        {/* 6. Leadership Directory (Patrons, Co-Patrons, Convener) */}
+        <SectionTransition
+          id="patrons"
+          sectionNumber="05"
+          sectionTitle="LEADERSHIP COUNCIL"
+          direction="right"
+          ambientAura="indigo"
+        >
           <Patrons />
-        </HorizontalSectionTransition>
+        </SectionTransition>
 
-        {/* 7. Prizes & Awards Podium - Enters from Left */}
-        <HorizontalSectionTransition direction="left" showLaserBeam={true}>
+        {/* 7. Prizes & Awards Podium */}
+        <SectionTransition
+          id="prizes"
+          sectionNumber="06"
+          sectionTitle="REWARDS PODIUM"
+          direction="up"
+          ambientAura="gold"
+        >
           <Prizes />
-        </HorizontalSectionTransition>
+        </SectionTransition>
 
-        {/* 8. Interactive FAQ Accordion - Enters from Right */}
-        <HorizontalSectionTransition direction="right" showLaserBeam={true}>
+        {/* 8. Interactive FAQ Accordion */}
+        <SectionTransition
+          id="faq"
+          sectionNumber="07"
+          sectionTitle="INTELLIGENCE FAQ"
+          direction="up"
+          ambientAura="cyan"
+        >
           <Faq />
-        </HorizontalSectionTransition>
+        </SectionTransition>
       </main>
 
-      {/* Footer - Enters from Left */}
-      <HorizontalSectionTransition direction="left" showLaserBeam={false}>
+      {/* 9. Footer & Communication Channels */}
+      <SectionTransition
+        id="contact"
+        sectionNumber="08"
+        sectionTitle="COMMUNICATION TERMINAL"
+        direction="none"
+        showLaser={true}
+        ambientAura="blue"
+      >
         <Footer />
-      </HorizontalSectionTransition>
+      </SectionTransition>
     </div>
   );
 };

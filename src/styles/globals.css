@@ -109,3 +109,20 @@
 .animate-rec-blink {
   animation: recBlink 1.2s infinite ease-in-out;
 }
+
+/* Infinite Sponsor Marquee */
+@keyframes sponsorMarquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-sponsor-marquee {
+  display: flex;
+  width: max-content;
+  animation: sponsorMarquee 32s linear infinite;
+}
+
+.animate-sponsor-marquee:hover {
+  animation-play-state: paused;
+}
+

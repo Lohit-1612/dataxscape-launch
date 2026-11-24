@@ -62,7 +62,7 @@ export const Gallery3D: React.FC = () => {
   if (photos.length === 0) return null;
 
   return (
-    <section id="gallery" className="relative py-20 sm:py-28 px-3 sm:px-4 overflow-hidden z-10 scroll-mt-20">
+    <section className="relative py-16 sm:py-24 px-3 sm:px-4 overflow-hidden z-10">
       {/* Ambient Floor Spotlight in Electric Cyan */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[300px] sm:w-[600px] h-[150px] bg-cyan-500/10 rounded-full blur-[80px] pointer-events-none" />
 
