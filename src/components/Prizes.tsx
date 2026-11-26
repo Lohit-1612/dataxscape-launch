@@ -1,9 +1,14 @@
 import React from 'react';
 import { Sparkles, Trophy, Award, Gift, CheckCircle } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
+
+const EXPO_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export const Prizes: React.FC = () => {
+  const prefersReducedMotion = Boolean(useReducedMotion());
+
   return (
-    <section id="prizes" className="relative py-20 sm:py-28 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto z-10 scroll-mt-20">
+    <section className="relative py-12 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto z-10">
       {/* Header */}
       <div className="text-center mb-14 sm:mb-20">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold tracking-widest uppercase mb-3">
@@ -21,7 +26,14 @@ export const Prizes: React.FC = () => {
       {/* 3-Tier Luxury Podium Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end max-w-5xl mx-auto mb-12">
         {/* RUNNER UP (2nd Place - Left) */}
-        <div className="order-2 md:order-1 flex flex-col bg-gradient-to-b from-[#0e1d35]/95 via-[#091529]/95 to-[#040b17]/95 border border-sky-500/30 hover:border-sky-400/60 rounded-3xl p-6 sm:p-7 shadow-[0_15px_35px_rgba(56,189,248,0.15)] backdrop-blur-md relative transition-all duration-300 hover:scale-[1.02]">
+        <motion.div
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 28, scale: 0.97 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, amount: 'some', margin: '0px 0px -30px 0px' }}
+          transition={{ duration: 0.7, delay: 0.14, ease: EXPO_EASE }}
+          whileHover={prefersReducedMotion ? undefined : { y: -6, transition: { duration: 0.25 } }}
+          className="order-2 md:order-1 flex flex-col bg-gradient-to-b from-[#0e1d35]/95 via-[#091529]/95 to-[#040b17]/95 border border-sky-500/30 hover:border-sky-400/60 rounded-3xl p-6 sm:p-7 shadow-[0_15px_35px_rgba(56,189,248,0.15)] backdrop-blur-md relative transition-colors duration-300"
+        >
           {/* Badge Icon */}
           <div className="relative -mt-12 flex justify-center mb-3">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-sky-500 via-blue-500 to-cyan-400 p-0.5 shadow-[0_8px_25px_rgba(56,189,248,0.5)]">
@@ -60,10 +72,17 @@ export const Prizes: React.FC = () => {
           </div>
 
           <div className="w-full h-1 bg-gradient-to-r from-transparent via-sky-500 to-transparent opacity-60 mt-5" />
-        </div>
+        </motion.div>
 
         {/* CHAMPION (1st Place - Center Elevated) */}
-        <div className="order-1 md:order-2 flex flex-col bg-gradient-to-b from-[#0a2040]/95 via-[#061630]/95 to-[#030d1c]/95 border-2 border-cyan-400/80 rounded-3xl p-7 sm:p-8 shadow-[0_20px_60px_rgba(0,210,255,0.4)] backdrop-blur-xl relative transition-all duration-300 hover:scale-[1.03] z-20 md:-translate-y-4">
+        <motion.div
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 36, scale: 0.96 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, amount: 'some', margin: '0px 0px -30px 0px' }}
+          transition={{ duration: 0.75, delay: 0.05, ease: EXPO_EASE }}
+          whileHover={prefersReducedMotion ? undefined : { y: -8, transition: { duration: 0.25 } }}
+          className="order-1 md:order-2 flex flex-col bg-gradient-to-b from-[#0a2040]/95 via-[#061630]/95 to-[#030d1c]/95 border-2 border-cyan-400/80 rounded-3xl p-7 sm:p-8 shadow-[0_20px_60px_rgba(0,210,255,0.4)] backdrop-blur-xl relative transition-colors duration-300 z-20 md:mb-5"
+        >
           {/* Champion Crown Aura */}
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500 text-black text-[10px] font-black tracking-widest uppercase shadow-[0_0_15px_rgba(0,210,255,0.8)]">
             ★ GRAND WINNER ★
@@ -107,10 +126,17 @@ export const Prizes: React.FC = () => {
           </div>
 
           <div className="w-full h-1.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent mt-6" />
-        </div>
+        </motion.div>
 
         {/* 2ND RUNNER UP (3rd Place - Right) */}
-        <div className="order-3 md:order-3 flex flex-col bg-gradient-to-b from-[#0a182f]/95 via-[#061122]/95 to-[#030a17]/95 border border-blue-500/30 hover:border-blue-500/60 rounded-3xl p-6 sm:p-7 shadow-[0_15px_35px_rgba(37,99,235,0.18)] backdrop-blur-md relative transition-all duration-300 hover:scale-[1.02]">
+        <motion.div
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 28, scale: 0.97 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, amount: 'some', margin: '0px 0px -30px 0px' }}
+          transition={{ duration: 0.7, delay: 0.22, ease: EXPO_EASE }}
+          whileHover={prefersReducedMotion ? undefined : { y: -6, transition: { duration: 0.25 } }}
+          className="order-3 md:order-3 flex flex-col bg-gradient-to-b from-[#0a182f]/95 via-[#061122]/95 to-[#030a17]/95 border border-blue-500/30 hover:border-blue-500/60 rounded-3xl p-6 sm:p-7 shadow-[0_15px_35px_rgba(37,99,235,0.18)] backdrop-blur-md relative transition-colors duration-300"
+        >
           {/* Badge Icon */}
           <div className="relative -mt-12 flex justify-center mb-3">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-cyan-400 p-0.5 shadow-[0_8px_25px_rgba(37,99,235,0.5)]">
@@ -149,7 +175,7 @@ export const Prizes: React.FC = () => {
           </div>
 
           <div className="w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-60 mt-5" />
-        </div>
+        </motion.div>
       </div>
 
       {/* Special Category Awards Banner in Blue */}
